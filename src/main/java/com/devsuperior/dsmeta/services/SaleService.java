@@ -1,11 +1,19 @@
 package com.devsuperior.dsmeta.services;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.devsuperior.dsmeta.dto.SaleMinDTO;
+import com.devsuperior.dsmeta.dto.SaleReportDTO;
 import com.devsuperior.dsmeta.entities.Sale;
 import com.devsuperior.dsmeta.repositories.SaleRepository;
 
@@ -20,4 +28,17 @@ public class SaleService {
 		Sale entity = result.get();
 		return new SaleMinDTO(entity);
 	}
+	
+	public List<SaleReportDTO> getSalesReport(String minDateStr, String maxDateStr, String sellerName, Pageable pageable) {
+	    LocalDate today = LocalDate.ofInstant(Instant.now(), ZoneId.systemDefault());
+
+	    LocalDate maxDate = (maxDateStr == null || maxDateStr.isEmpty()) ? today : LocalDate.parse(maxDateStr);
+	    LocalDate minDate = (minDateStr == null || minDateStr.isEmpty()) ? maxDate.minusYears(1) : LocalDate.parse(minDateStr);
+
+	    Page<Sale> result = repository.findSales(minDate, maxDate, sellerName, pageable);
+	    return result.stream()
+	            .map(sale -> new SaleReportDTO(sale.getId(), sale.getDate().toString(), sale.getAmount(), sale.getSeller().getName()))
+	            .collect(Collectors.toList());
+	}
+
 }
