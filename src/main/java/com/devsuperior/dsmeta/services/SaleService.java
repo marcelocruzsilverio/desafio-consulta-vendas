@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import com.devsuperior.dsmeta.dto.SaleMinDTO;
 import com.devsuperior.dsmeta.dto.SaleReportDTO;
+import com.devsuperior.dsmeta.dto.SaleSummaryDTO;
 import com.devsuperior.dsmeta.entities.Sale;
 import com.devsuperior.dsmeta.repositories.SaleRepository;
 
@@ -40,5 +41,17 @@ public class SaleService {
 	            .map(sale -> new SaleReportDTO(sale.getId(), sale.getDate().toString(), sale.getAmount(), sale.getSeller().getName()))
 	            .collect(Collectors.toList());
 	}
+	
+	public List<SaleSummaryDTO> getSalesSummary(String minDateStr, String maxDateStr) {
+        LocalDate today = LocalDate.ofInstant(Instant.now(), ZoneId.systemDefault());
+
+        LocalDate maxDate = (maxDateStr == null || maxDateStr.isEmpty()) ? today : LocalDate.parse(maxDateStr);
+        LocalDate minDate = (minDateStr == null || minDateStr.isEmpty()) ? maxDate.minusYears(1) : LocalDate.parse(minDateStr);
+
+        List<Object[]> result = repository.findSalesSummary(minDate, maxDate);
+        return result.stream()
+            .map(obj -> new SaleSummaryDTO((String) obj[0], (Double) obj[1]))
+            .collect(Collectors.toList());
+    }
 
 }
