@@ -29,19 +29,31 @@ public class SaleService {
 		Sale entity = result.get();
 		return new SaleMinDTO(entity);
 	}
-	
-	public List<SaleReportDTO> getSalesReport(String minDateStr, String maxDateStr, String sellerName, Pageable pageable) {
-	    LocalDate today = LocalDate.ofInstant(Instant.now(), ZoneId.systemDefault());
 
-	    LocalDate maxDate = (maxDateStr == null || maxDateStr.isEmpty()) ? today : LocalDate.parse(maxDateStr);
-	    LocalDate minDate = (minDateStr == null || minDateStr.isEmpty()) ? maxDate.minusYears(1) : LocalDate.parse(minDateStr);
+	public Page<SaleReportDTO> getSalesReport(String minDateStr, String maxDateStr, String sellerName, Pageable pageable) {
+		LocalDate today = LocalDate.ofInstant(Instant.now(), ZoneId.systemDefault());
 
-	    Page<Sale> result = repository.findSales(minDate, maxDate, sellerName, pageable);
-	    return result.stream()
-	            .map(sale -> new SaleReportDTO(sale.getId(), sale.getDate().toString(), sale.getAmount(), sale.getSeller().getName()))
-	            .collect(Collectors.toList());
+		// Define as datas com valores padrão
+		LocalDate maxDate = (maxDateStr == null || maxDateStr.isEmpty()) ? today : LocalDate.parse(maxDateStr);
+		LocalDate minDate = (minDateStr == null || minDateStr.isEmpty()) ? maxDate.minusYears(1) : LocalDate.parse(minDateStr);
+
+		// Verifica se o nome do vendedor está vazio e define como null
+		sellerName = (sellerName == null || sellerName.trim().isEmpty()) ? null : sellerName;
+
+		// Busca os dados paginados
+		Page<Sale> result = repository.findSales(minDate, maxDate, sellerName, pageable);
+
+		// Converte para DTO e mantém a paginação
+		return result.map(sale -> new SaleReportDTO(
+				sale.getId(),
+				sale.getDate().toString(),
+				sale.getAmount(),
+				sale.getSeller().getName())
+		);
 	}
-	
+
+
+
 	public List<SaleSummaryDTO> getSalesSummary(String minDateStr, String maxDateStr) {
         LocalDate today = LocalDate.ofInstant(Instant.now(), ZoneId.systemDefault());
 

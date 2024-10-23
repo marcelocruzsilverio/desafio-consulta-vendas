@@ -18,8 +18,7 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
             "(:sellerName IS NULL OR LOWER(s.seller.name) LIKE LOWER(CONCAT('%', :sellerName, '%'))) ORDER BY s.id ASC")
     Page<Sale> findSales(LocalDate minDate, LocalDate maxDate, String sellerName, Pageable pageable);
 
-	
-	@Query("SELECT s.seller.name AS sellerName, SUM(s.amount) AS total " +
+    @Query("SELECT s.seller.name AS sellerName, SUM(s.amount) AS total " +
             "FROM Sale s WHERE " +
             "(:minDate IS NULL OR s.date >= :minDate) AND " +
             "(:maxDate IS NULL OR s.date <= :maxDate) " +
